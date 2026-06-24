@@ -1,6 +1,8 @@
 //! Builds the Zig PID 1 init binary.
 //! Cross-compile for target arch, link against musl statically.
 //!
+//! Compatible with Zig 0.12, 0.13, and 0.14.
+//!
 //! Usage:
 //!   zig build -Dtarget=x86_64-linux-musl -Doptimize=ReleaseFast
 //!   zig build -Dtarget=aarch64-linux-musl -Doptimize=ReleaseFast
@@ -13,10 +15,11 @@ pub fn build(b: *std.Build) void {
 
     const init_exe = b.addExecutable(.{
         .name             = "init",
-        .root_source_file = b.path("init/main.zig"),
-        .target           = target,
-        .optimize         = optimize,
-        .link_libc        = false, // pure Zig, no libc dependency
+        .root_module      = b.createModule(.{
+            .root_source_file = b.path("init/main.zig"),
+            .target           = target,
+            .optimize         = optimize,
+        }),
     });
 
     // Static binary — no shared libs on the rootfs needed
