@@ -1,0 +1,8 @@
+#!/bin/execlineb -P
+# s6 run script for arcis-ui service
+# Starts zigllm-ui at the tier configured in /etc/arcis/env (ARCIS_TIER).
+# Waits for arcis service readiness before launching.
+
+s6-envfile /etc/arcis/env
+s6-setuidgid root
+/engine/arcis-ui

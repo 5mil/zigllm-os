@@ -1,36 +1,34 @@
-.PHONY: all kernel init rootfs image flash clean
+# Makefile — Arcis OS convenience targets
+# All real build logic lives in build.zig and rootfs/assemble.sh.
 
-ARCH     ?= x86_64
-CROSS    ?=
-OPTIMIZE ?= ReleaseFast
+ARCH       ?= x86_64
+OPTIMIZE   ?= ReleaseFast
+TIER       ?= visio
+TARGET      = $(ARCH)-linux-musl
 
-all: init rootfs image
+.PHONY: all init rootfs image clean check-size
 
-kernel:
-	@echo "==> Building kernel (ARCH=$(ARCH))"
-	@chmod +x kernel/build.sh
-	./kernel/build.sh $(ARCH) $(CROSS)
+all: init rootfs
 
 init:
-	@echo "==> Building Zig init (ARCH=$(ARCH))"
-	zig build -Dtarget=$(ARCH)-linux-musl -Doptimize=$(OPTIMIZE)
+	zig build -Dtarget=$(TARGET) -Doptimize=$(OPTIMIZE)
+
+check-size: init
+	zig build check-size -Dtarget=$(TARGET) -Doptimize=$(OPTIMIZE)
 
 rootfs: init
-	@echo "==> Assembling rootfs"
-	@chmod +x rootfs/assemble.sh
-	./rootfs/assemble.sh
+	zig build rootfs -Dtarget=$(TARGET) -Doptimize=$(OPTIMIZE) -Dtier=$(TIER)
 
-image: rootfs kernel
-	@echo "==> Packing disk image"
-	@chmod +x image/pack.sh
-	./image/pack.sh
-
-flash:
-	@chmod +x image/flash.sh
-	./image/flash.sh $(DEV)
-
-check-size:
-	zig build check-size -Dtarget=$(ARCH)-linux-musl -Doptimize=$(OPTIMIZE)
+image: rootfs
+	zig build image -Dtarget=$(TARGET) -Doptimize=$(OPTIMIZE) -Dtier=$(TIER)
 
 clean:
-	rm -rf zig-out .zig-cache rootfs/out image/zigllm-os.img image/boot/vmlinuz
+	rm -rf zig-out zig-cache rootfs/out arcis-os.img arcis-os.iso arcis-os.tar.gz
+
+# Quick QEMU test boot (requires qemu-system-x86_64)
+qemu: rootfs
+	qemu-system-x86_64 -kernel rootfs/out/boot/vmlinuz \
+	    -initrd rootfs/out/boot/initrd \
+	    -append "root=/dev/sda1 rw quiet" \
+	    -drive file=arcis-os.img,format=raw \
+	    -m 512M -nographic

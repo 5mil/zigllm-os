@@ -1,4 +1,4 @@
 #!/bin/execlineb -P
-# Minimal syslog via s6-log
-
-s6-log -d3 T /var/log/zigllm
+# s6 run script for syslog
+s6-setuidgid root
+/sbin/syslogd -n -O /var/log/messages

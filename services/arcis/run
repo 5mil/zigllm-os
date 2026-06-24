@@ -1,0 +1,8 @@
+#!/bin/execlineb -P
+# s6 run script for arcis service
+# Starts the Arcis engine (inference + API server) at tier from /etc/arcis/tier
+# Tier defaults to visio if file absent.
+
+s6-envfile /etc/arcis/env
+s6-setuidgid root
+/engine/arcis

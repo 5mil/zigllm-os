@@ -1,32 +1,33 @@
-//! Clean shutdown and reboot sequences.
-//! Called when init receives SIGTERM (shutdown) or SIGUSR1 (reboot).
+//! shutdown.zig — Arcis OS clean shutdown sequence
+//! Sends SIGTERM to all processes, waits, then issues reboot syscall.
 
 const std   = @import("std");
 const linux = std.os.linux;
-const posix = std.posix;
 
-pub const Action = enum { poweroff, reboot, halt };
+const REBOOT_MAGIC1:    u32 = 0xfee1dead;
+const REBOOT_MAGIC2:    u32 = 672274793;
+const REBOOT_CMD_HALT:  u32 = 0xcdef0123;
+const REBOOT_CMD_POWER: u32 = 0x4321fedc;
+const REBOOT_CMD_RESTART: u32 = 0x01234567;
 
-pub fn shutdown(action: Action) noreturn {
-    // 1. Signal s6 to stop all services
-    _ = posix.kill(-1, posix.SIG.TERM) catch {};
-    std.time.sleep(2_000_000_000); // 2s grace period
+pub const ShutdownCmd = enum { halt, poweroff, restart };
 
-    // 2. Kill remaining processes
-    _ = posix.kill(-1, posix.SIG.KILL) catch {};
-
-    // 3. Sync filesystems
-    _ = linux.sync();
-
-    // 4. Unmount all
-    _ = linux.umount2("/", linux.MNT_DETACH);
-
-    // 5. Final reboot syscall
-    const cmd: u32 = switch (action) {
-        .poweroff => linux.LINUX_REBOOT_CMD_POWER_OFF,
-        .reboot   => linux.LINUX_REBOOT_CMD_RESTART,
-        .halt     => linux.LINUX_REBOOT_CMD_HALT,
+pub fn shutdown(cmd: ShutdownCmd) noreturn {
+    // 1. Broadcast SIGTERM to all processes.
+    _ = linux.syscall2(.kill, @bitCast(@as(i64, -1)), std.os.linux.SIG.TERM);
+    // 2. Wait 2 seconds for graceful exit.
+    var ts = linux.timespec{ .tv_sec = 2, .tv_nsec = 0 };
+    _ = linux.syscall2(.nanosleep, @intFromPtr(&ts), 0);
+    // 3. Broadcast SIGKILL.
+    _ = linux.syscall2(.kill, @bitCast(@as(i64, -1)), std.os.linux.SIG.KILL);
+    // 4. Sync filesystems.
+    _ = linux.syscall0(.sync);
+    // 5. Reboot syscall.
+    const reboot_cmd: u32 = switch (cmd) {
+        .halt    => REBOOT_CMD_HALT,
+        .poweroff => REBOOT_CMD_POWER,
+        .restart => REBOOT_CMD_RESTART,
     };
-    _ = linux.reboot(linux.LINUX_REBOOT_MAGIC1, linux.LINUX_REBOOT_MAGIC2, cmd, null);
+    _ = linux.syscall4(.reboot, REBOOT_MAGIC1, REBOOT_MAGIC2, reboot_cmd, 0);
     unreachable;
 }

@@ -1,0 +1,4 @@
+#!/bin/execlineb -P
+import -u EXIT_CODE
+foreground { s6-echo "arcis-ui exited with code ${EXIT_CODE}" }
+empty
