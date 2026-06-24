@@ -1,0 +1,88 @@
+# zigllm-os kernel configuration — x86_64
+# Minimal kernel tuned for AI inference workloads.
+# Generate defconfig then apply: scripts/kconfig/merge_config.sh arch/x86/configs/x86_64_defconfig kernel/config.x86_64
+
+# --- Scheduler / Latency ---
+CONFIG_HZ_1000=y
+CONFIG_HZ=1000
+CONFIG_PREEMPT=y
+CONFIG_NO_HZ_FULL=y
+CONFIG_RCU_NOCB_CPU=y
+CONFIG_CPU_ISOLATION=y
+
+# --- Memory ---
+CONFIG_TRANSPARENT_HUGEPAGE=y
+CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS=y
+CONFIG_HUGETLBFS=y
+CONFIG_HUGETLB_PAGE=y
+CONFIG_ZSWAP=y
+CONFIG_ZSMALLOC=y
+CONFIG_NUMA=y
+CONFIG_NUMA_BALANCING=y
+
+# --- GPU / DRM ---
+CONFIG_DRM=y
+CONFIG_DRM_KMS_HELPER=y
+CONFIG_DRM_FBDEV_EMULATION=y
+CONFIG_DRM_AMDGPU=y
+# CONFIG_DRM_NOUVEAU is not set   # enable for NVIDIA open kernel module
+CONFIG_DRM_I915=y
+CONFIG_DRM_VIRTIO_GPU=y
+CONFIG_FB=y
+CONFIG_FB_SIMPLE=y
+
+# --- Input ---
+CONFIG_INPUT=y
+CONFIG_INPUT_EVDEV=y
+CONFIG_INPUT_KEYBOARD=y
+CONFIG_INPUT_MOUSE=y
+CONFIG_INPUT_TOUCHSCREEN=y
+CONFIG_HID=y
+CONFIG_HID_GENERIC=y
+CONFIG_USB_HID=y
+
+# --- Storage ---
+CONFIG_EXT4_FS=y
+CONFIG_BTRFS_FS=y
+CONFIG_VFAT_FS=y
+CONFIG_NLS_CODEPAGE_437=y
+CONFIG_NVME_CORE=y
+CONFIG_BLK_DEV_NVME=y
+CONFIG_SATA_AHCI=y
+CONFIG_USB_STORAGE=y
+CONFIG_MMC=y
+CONFIG_MMC_SDHCI=y
+
+# --- Networking (minimal — API server needs loopback + optionally eth) ---
+CONFIG_NET=y
+CONFIG_INET=y
+CONFIG_IP_MULTICAST=n
+CONFIG_NET_9P=n
+CONFIG_NETFILTER=n
+# WiFi disabled by default — enable per-hardware
+# CONFIG_WLAN is not set
+
+# --- USB ---
+CONFIG_USB=y
+CONFIG_USB_XHCI_HCD=y
+CONFIG_USB_EHCI_HCD=y
+
+# --- Firmware loading (GPU firmware) ---
+CONFIG_FW_LOADER=y
+CONFIG_FW_LOADER_USER_HELPER=n
+CONFIG_EXTRA_FIRMWARE_DIR="/lib/firmware"
+
+# --- Security (minimal) ---
+CONFIG_SECURITY=n
+CONFIG_AUDIT=n
+CONFIG_SELINUX=n
+CONFIG_APPARMOR=n
+
+# --- Strip everything else ---
+# CONFIG_SOUND is not set
+# CONFIG_BLUETOOTH is not set
+# CONFIG_WIRELESS is not set
+# CONFIG_HAMRADIO is not set
+# CONFIG_NFC is not set
+# CONFIG_INFINIBAND is not set
+# CONFIG_VIRTUALIZATION is not set  # remove if running in VM

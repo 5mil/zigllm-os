@@ -1,0 +1,6 @@
+#!/bin/execlineb -P
+# mdev: populates /dev from uevent stream
+# Handles hotplug for USB, input devices, GPU firmware loading
+
+fdmove -c 2 1
+mdev -df

@@ -1,0 +1,5 @@
+# zigllm binaries installed here by rootfs/assemble.sh:
+# /engine/zigllm-api
+# /engine/zigllm-ui
+# /engine/zigllm-core
+# /engine/models/   (GGUF model files)

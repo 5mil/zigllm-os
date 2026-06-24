@@ -1,0 +1,4 @@
+export PATH=/bin:/sbin:/usr/bin:/engine
+export HOME=/root
+export TERM=linux
+export ZIGLLM_API=http://127.0.0.1:8080

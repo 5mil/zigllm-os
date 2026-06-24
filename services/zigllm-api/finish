@@ -1,0 +1,5 @@
+#!/bin/execlineb -P
+# Called when zigllm-api exits
+# s6 will restart it automatically unless exit code is 125
+
+s6-echo "zigllm-api exited, restarting..."

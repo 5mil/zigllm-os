@@ -1,0 +1,5 @@
+NAME="zigllm-os"
+VERSION="0.1.0"
+ID=zigllm
+PRETTY_NAME="zigllm-os 0.1.0"
+HOME_URL="https://github.com/5mil/zigllm-os"

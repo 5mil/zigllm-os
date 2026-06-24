@@ -1,0 +1,6 @@
+#!/bin/execlineb -P
+# s6 run script for zigllm-api service
+# Starts the HTTP inference API server
+
+s6-setuidgid root
+/engine/zigllm-api

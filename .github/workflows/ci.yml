@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-init-x86:
+    name: Build Zig init (x86_64-linux-musl)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v1
+        with:
+          version: 0.14.0
+      - name: Build init
+        run: zig build -Dtarget=x86_64-linux-musl -Doptimize=ReleaseFast
+      - name: Check init binary size (512KB limit)
+        run: zig build check-size -Dtarget=x86_64-linux-musl -Doptimize=ReleaseFast
+      - name: Upload init binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: init-x86_64
+          path: zig-out/bin/init
+
+  build-init-aarch64:
+    name: Build Zig init (aarch64-linux-musl)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v1
+        with:
+          version: 0.14.0
+      - name: Build init
+        run: zig build -Dtarget=aarch64-linux-musl -Doptimize=ReleaseFast
+      - name: Upload init binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: init-aarch64
+          path: zig-out/bin/init
+
+  validate-kernel-config:
+    name: Validate kernel configs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check required options present in x86_64 config
+        run: |
+          for opt in CONFIG_HZ_1000 CONFIG_PREEMPT CONFIG_TRANSPARENT_HUGEPAGE CONFIG_DRM CONFIG_INPUT_EVDEV CONFIG_EXT4_FS; do
+            grep -q "^${opt}=y" kernel/config.x86_64 || (echo "MISSING: $opt" && exit 1)
+          done
+          echo "x86_64 kernel config OK"
+      - name: Check required options present in aarch64 config
+        run: |
+          for opt in CONFIG_HZ_1000 CONFIG_PREEMPT CONFIG_DRM CONFIG_INPUT_EVDEV CONFIG_EXT4_FS; do
+            grep -q "^${opt}=y" kernel/config.aarch64 || (echo "MISSING: $opt" && exit 1)
+          done
+          echo "aarch64 kernel config OK"

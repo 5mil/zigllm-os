@@ -1,0 +1,6 @@
+#!/bin/execlineb -P
+# s6 run script for zigllm-core
+# Loads model and starts inference engine
+
+s6-setuidgid root
+/engine/zigllm-core

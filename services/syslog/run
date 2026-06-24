@@ -1,0 +1,4 @@
+#!/bin/execlineb -P
+# Minimal syslog via s6-log
+
+s6-log -d3 T /var/log/zigllm
