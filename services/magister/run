@@ -1,0 +1,30 @@
+#!/bin/execlineb -P
+# s6 run script for magister service
+#
+# Magister is a unified mining pool + identity + governance engine.
+# It binds:
+#   stratum  — TCP :3333  (DGB Skein, VarDiff)
+#   api      — TCP :8080  (REST, 32 routes)
+#
+# Required env (set in /etc/magister/env):
+#   GRIM_DATA_PATH   — flat-file storage root (must exist, writable)
+#   MAGISTER_PROFILE — "local" or "cloud"     (default: local)
+#
+# Optional env:
+#   MAGISTER_STRATUM_PORT  — overrides default 3333
+#   MAGISTER_API_PORT      — overrides default 8080
+#   MAGISTER_RPC_HOST      — DGB node host    (default: 127.0.0.1)
+#   MAGISTER_RPC_PORT      — DGB node port    (default: 14022)
+#   MAGISTER_RPC_USER      — DGB RPC user
+#   MAGISTER_RPC_PASS      — DGB RPC password
+#   MAGISTER_ADVISOR_TIER  — "T0" or "T1"     (default: T0)
+#
+# Readiness: magister writes a byte to fd 3 (s6-notifyoncheck) once the
+# API listener is bound. Downstream services may depend on this.
+#
+# s6-rc will restart the service automatically on crash.
+# Log output goes to the syslog bundle via s6-log (configured separately).
+
+s6-envfile /etc/magister/env
+s6-setuidgid magister
+/usr/local/bin/magister

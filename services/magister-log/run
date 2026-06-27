@@ -1,0 +1,8 @@
+#!/bin/execlineb -P
+# s6 log service for magister
+#
+# Rotates logs under /var/log/magister.
+# max 10 files × 1 MiB each; timestamps prefixed by s6-tai64n.
+
+s6-setuidgid root
+s6-log -d 3 T s10 n10 S1048576 /var/log/magister

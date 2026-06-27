@@ -1,0 +1,13 @@
+#!/bin/execlineb -P
+# s6 finish script for magister service
+#
+# Called by s6 when the magister process exits for any reason.
+# Logs the exit code; s6 supervision will restart the process automatically
+# unless s6-rc has been asked to bring the service down.
+#
+# $1 = exit code   (255 if killed by signal)
+# $2 = signal+256  (or 256 if exited normally)
+
+import -u EXIT_CODE
+foreground { s6-echo "[magister] exited with code ${EXIT_CODE} — s6 will restart" }
+empty

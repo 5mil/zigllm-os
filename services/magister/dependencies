@@ -1,0 +1,10 @@
+# s6-rc dependency list for magister
+#
+# magister needs:
+#   syslog  — structured log output via s6-log
+#   mdev    — /dev ready before binding sockets
+#
+# Optional (comment in if running DGB node on same host):
+#   # digibyted
+syslog
+mdev
