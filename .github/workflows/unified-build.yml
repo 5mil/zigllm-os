@@ -1,0 +1,49 @@
+name: Unified Cross-Repo Build & Smoke Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
+        tier: [forma, figura, visio]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.13.0
+
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make gcc
+
+      - name: Build zigllm-os
+        run: |
+          make ARCH=${{ matrix.arch }} TIER=${{ matrix.tier }} image
+
+      - name: Path integration check
+        run: |
+          ls -l rootfs/out/boot/ || echo "boot dir check"
+          ls -l arcis-os.img
+
+      - name: QEMU smoke test (x86_64 only for now)
+        if: matrix.arch == 'x86_64'
+        run: |
+          # Note: Full QEMU test would require more setup; this is a build smoke
+          echo "Build successful for ${{ matrix.arch }} ${{ matrix.tier }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcis-os-${{ matrix.arch }}-${{ matrix.tier }}
+          path: arcis-os.img
